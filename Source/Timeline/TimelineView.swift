@@ -410,7 +410,7 @@ public class TimelineView: UIView {
         let floatIndex = CGFloat(index)
         let x = style.leftInset + floatIndex / totalCount * calendarWidth
         let equalWidth = calendarWidth / totalCount
-        event.frame = CGRect(x: x, y: startY, width: equalWidth, height: endY - startY)
+        event.frame = CGRect(x: 20, y: startY, width: equalWidth, height: endY - startY)
       }
     }
   }
