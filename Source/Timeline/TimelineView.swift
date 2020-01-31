@@ -394,8 +394,10 @@ public class TimelineView: UIView {
 	let calendar = Calendar.current
         let tenMinAfter = calendar.date(byAdding: .minute, value: 10, to: earliestEvent)
         if (event.descriptor.startDate < tenMinAfter!) {
-            overlappingEvents.append(event)
-        }
+        } else {
+	  overlappingEvents.append(event)
+	}
+
 	      
       } else {
         let lastEvent = overlappingEvents.last!
