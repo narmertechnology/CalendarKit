@@ -383,9 +383,18 @@ public class TimelineView: UIView {
       if style.eventsWillOverlap {
         guard let earliestEvent = overlappingEvents.first?.descriptor.startDate else { continue }
         let dateInterval = getDateInterval(date: earliestEvent)
+	      
+	/*
         if event.descriptor.datePeriod.relation(to: dateInterval) == Relation.startInside {
           overlappingEvents.append(event)
           continue
+        }
+	*/
+	      
+	let calendar = Calendar.current
+        let tenMinAfter = calendar.date(byAdding: .minute, value: 10, to: earliestEvent)
+        if (event.descriptor.startDate < tenMinAfter!) {
+            overlappingEvents.append(event)
         }
 	      
       } else {
