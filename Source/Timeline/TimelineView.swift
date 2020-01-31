@@ -383,22 +383,10 @@ public class TimelineView: UIView {
       if style.eventsWillOverlap {
         guard let earliestEvent = overlappingEvents.first?.descriptor.startDate else { continue }
         let dateInterval = getDateInterval(date: earliestEvent)
-	      
-	/*
         if event.descriptor.datePeriod.relation(to: dateInterval) == Relation.startInside {
           overlappingEvents.append(event)
           continue
         }
-	*/
-	      
-	let calendar = Calendar.current
-        let tenMinAfter = calendar.date(byAdding: .minute, value: 10, to: earliestEvent)
-        if (event.descriptor.startDate < tenMinAfter!) {
-        } else {
-	  overlappingEvents.append(event)
-	}
-
-	      
       } else {
         let lastEvent = overlappingEvents.last!
         if longestEvent.descriptor.datePeriod.overlaps(with: event.descriptor.datePeriod) ||
@@ -415,15 +403,108 @@ public class TimelineView: UIView {
     overlappingEvents.removeAll()
 
     for overlappingEvents in groupsOfEvents {
-      let totalCount = CGFloat(overlappingEvents.count)
-      for (index, event) in overlappingEvents.enumerated() {
-        let startY = dateToY(event.descriptor.datePeriod.beginning!)
-        let endY = dateToY(event.descriptor.datePeriod.end!)
-        let floatIndex = CGFloat(index)
-        let x = style.leftInset + floatIndex / totalCount * calendarWidth
-	let equalWidth = calendarWidth / totalCount        
-	event.frame = CGRect(x: x, y: startY, width: equalWidth, height: endY - startY)
-      }
+        let totalCount = CGFloat(overlappingEvents.count)
+        for (index, event) in overlappingEvents.enumerated() {
+            let startY = dateToY(event.descriptor.datePeriod.beginning!)
+            let endY = dateToY(event.descriptor.datePeriod.end!)
+            let floatIndex = CGFloat(index)
+            let x = style.leftInset + floatIndex * 20;// / totalCount * calendarWidth
+            let equalWidth = 20.0;//  calendarWidth / totalCount
+            event.frame = CGRect(x: x, y: startY, width: CGFloat(equalWidth), height: endY - startY)
+        }
+    }
+    
+    var xPocArray = [CGFloat]()
+    
+    for event in sortedEvents {
+        var eventsBefore = [EventLayoutAttributes]()
+        for otherEvent in sortedEvents {
+            if event.frame.origin.x > otherEvent.frame.origin.x {
+                eventsBefore.append(otherEvent)
+            }
+        }
+    
+        let sortedEventsBefore = eventsBefore.sorted { (attr1, attr2) -> Bool in
+            if attr1.frame.origin.x < attr2.frame.origin.x {
+                return true
+            } else if attr1.frame.origin.x > attr2.frame.origin.x {
+                return false
+            } else {
+                if attr1.frame.origin.y < attr2.frame.origin.y {
+                    return true
+                } else {
+                    return false
+                }
+            }
+        }
+    
+        if (sortedEventsBefore.count > 1) {
+            for i in 0..<sortedEventsBefore.count - 1 {
+                let attr1 = sortedEventsBefore[i]
+                let attr2 = sortedEventsBefore[i + 1]
+                
+                if (attr1.frame.origin.x != attr2.frame.origin.x) {
+                    
+                    if attr1.frame.origin.y + attr1.frame.size.height + 10 <= event.frame.origin.y {
+                        event.frame.origin.x = attr1.frame.origin.x
+                        
+                        break;
+                    }
+                    
+                    continue;
+                }
+                
+                if attr1.frame.origin.y + attr1.frame.size.height + 10 <= event.frame.origin.y &&
+                    event.frame.origin.y + event.frame.size.height + 10 <= attr2.frame.origin.y {
+                    event.frame.origin.x = attr1.frame.origin.x
+                    
+                    break;
+                }
+            }
+        }
+        
+        var isExist = false
+        for i in 0..<xPocArray.count {
+            if (xPocArray[i] == event.frame.origin.x) {
+                isExist = true
+                break
+            }
+        }
+        if (!isExist) {
+            xPocArray.append(event.frame.origin.x)
+        }
+     }
+    
+     let sortedXPocArray = xPocArray.sorted { (x1, x2) -> Bool in
+         return x1 < x2
+     }
+     
+    for event in sortedEvents {
+        let index = sortedXPocArray.firstIndex(of: event.frame.origin.x)
+        if index != nil {
+            let x = style.leftInset + CGFloat(index!) / CGFloat(xPocArray.count) * calendarWidth
+            let equalWidth = calendarWidth / CGFloat(xPocArray.count)
+            event.frame = CGRect(x: x, y: event.frame.origin.y, width: CGFloat(equalWidth), height: event.frame.size.height)
+        }
+    }
+    
+    for event in sortedEvents {
+        let frame = CGRect(x: event.frame.origin.x,
+                           y: event.frame.origin.y,
+                           width: style.leftInset + calendarWidth - event.frame.origin.x,
+                           height: event.frame.size.height)
+        
+        
+        var cnt = 0
+        for otherEvent in sortedEvents {
+            if frame.intersects(otherEvent.frame) {
+                cnt += 1
+            }
+        }
+        
+        if (cnt == 1) {
+            event.frame = frame
+        }
     }
   }
 
