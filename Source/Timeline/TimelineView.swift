@@ -383,7 +383,7 @@ public class TimelineView: UIView {
       if style.eventsWillOverlap {
         guard let earliestEvent = overlappingEvents.first?.descriptor.startDate else { continue }
         let dateInterval = getDateInterval(date: earliestEvent)
-        if event.descriptor.datePeriod.relation(to: dateInterval) == Relation.startTouching {
+        if event.descriptor.datePeriod.relation(to: dateInterval) == Relation.startInside {
           overlappingEvents.append(event)
           continue
         }
@@ -409,7 +409,7 @@ public class TimelineView: UIView {
         let endY = dateToY(event.descriptor.datePeriod.end!)
         let floatIndex = CGFloat(index)
         let x = style.leftInset + floatIndex / totalCount * calendarWidth
-        let equalWidth = calendarWidth / totalCount
+        let equalWidth = calendarWidth - x
         event.frame = CGRect(x: x, y: startY, width: equalWidth, height: endY - startY)
       }
     }
